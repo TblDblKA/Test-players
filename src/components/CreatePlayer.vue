@@ -1,74 +1,121 @@
 <template>
-    <h1>Добавить нового игрока</h1>
-    <div class="row">
-        <input id="name" type="text" v-model="players_name" placeholder="Имя"/>
-        <input id="life" type="number" v-model="players_life" placeholder="Жизней" />
-        <button type="button" v-on:click="createPlayer">Создать</button>
-    </div>
+  <div class="create-player">
+    <h1 class="create-player__title">Добавить нового игрока</h1>
+    <CreatePlayerError
+      :messages="errorsList"
+    />
+    <form
+      class="create-player__form"
+      @submit.prevent="createPlayer"
+    >
+      <label class="create-player__label">
+        Имя:
+        <input
+          type="text"
+          v-model="player.name"
+          class="create-player__input"
+          @input="errorsList = []"
+        />
+      </label>
+      <label class="create-player__label">
+        Количество жизней:
+        <input
+          type="number"
+          v-model="player.life"
+          class="create-player__input"
+          @input="errorsList = []"
+        />
+      </label>
+      <button
+        type="submit"
+        class="create-player__submit"
+      >
+        Создать
+      </button>
+    </form>
+  </div>
 </template>
 
-
 <script>
+import CreatePlayerError from './CreatePlayerError.vue'
 export default {
   name: 'CreatePlayer',
-  
-  data () {
+  components: {
+    CreatePlayerError,
+  },
+  data() {
     return {
-      players: [],
-      players_name: '',
-      players_life: ''
+      player: {
+        name: '',
+        life: '',
+      },
+      errorsList: []
     };
   },
-  
+  emits: ['add-player'],
   methods: {
+    validatePlayer() {
+      let isValid = true
+      if (this.player.name === '' || this.player.name === undefined) {
+        this.errorsList.push('Укажите имя');
+        isValid = false;
+      }
+
+      if (this.player.life === '' || this.player.life === undefined) {
+        this.errorsList.push('Укажите количество жизней');
+        isValid = false;
+      }
+      else if (this.player.life <= 0) {
+        this.errorsList.push('Значение не может быть меньше нуля');
+        isValid = false;
+      }
+      return isValid;
+    },
     createPlayer() {
-
-        if(this.players_name === '' || this.players_name === undefined) {
-            alert('Укажите имя');
-            return;
-        }
-
-        if(this.players_life === '' || this.players_life === undefined) {
-            alert('Укажите количество жизней');
-            return;
-        }
-
-        if(this.players_life <= 0) {
-            alert('Значение не может быть больше нуля');
-            return;
-        }
-
-        this.players.push({
-            'name': this.players_name,
-            'life': this.players_life,
-        })
-
-        this.players_name = '';
-        this.players_life = '';
-
-        this.$emit('players-list', this.players);
-    }
+      const isValid = this.validatePlayer();
+      if (!isValid) return;
+      const newPlayer = { ...this.player };
+      this.$emit('add-player', newPlayer);
+      this.player.name = '';
+      this.player.life = '';
+    },
   },
-}
+};
 </script>
 
 <style lang="scss">
-    .row {
-        display: flex;
-        margin-top: 20px;
+.create-player {
+  padding: 24px;
+  max-width: 400px;
+  margin: 0 auto;
+  border-radius: 8px;
 
-        input {
-            margin-right: 12px;
-            width: 100%;
-            height: 24px;
-        }
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
 
-        button {
-            width: 70px;
-        }
-    }
+  &__label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  &__input {
+    padding: 8px;
+    border: 1px solid #ccc;
+  }
 
-    #life {
-        width: 70px;
-    }
+  &__submit {
+    background-color: #444;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  &__submit:hover {
+    background-color: #333;
+  }
+}
 </style>
